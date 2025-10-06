@@ -10,7 +10,12 @@ import { useToast } from "@/components/ui/use-toast"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { ethers } from "ethers"
-import { getContract } from "@/lib/contractConfig"
+import { 
+  getContract, 
+  getU2UProvider, 
+  switchToU2UTestnet, 
+  isOnU2UTestnet 
+} from "@/lib/contractConfig"
 
 export default function ViewFIRsPage() {
   const { toast } = useToast()
@@ -22,29 +27,30 @@ export default function ViewFIRsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [firDetails, setFirDetails] = useState<any>(null)
   
-  // Connect to MetaMask wallet
+  // Connect to MetaMask wallet and switch to U2U testnet
   const connectWallet = async () => {
     if (account) return; // Already connected
     
     setIsConnecting(true);
     try {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        setAccount(accounts[0]);
-        
-        toast({
-          title: "Wallet Connected",
-          description: `Connected to wallet: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
-          variant: "default",
-        });
-      } else {
+      if (!window.ethereum) {
         toast({
           title: "MetaMask Not Found",
           description: "Please install MetaMask browser extension to use blockchain features.",
           variant: "destructive",
         });
+        return;
       }
+
+      await switchToU2UTestnet();
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      setAccount(accounts[0]);
+      
+      toast({
+        title: "Wallet Connected to U2U Testnet",
+        description: `Connected: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error connecting to wallet:", error);
       toast({
@@ -104,7 +110,7 @@ export default function ViewFIRsPage() {
           cid: fir.cid,
           status: fir.status,
           complainant: fir.complainant,
-          policeOfficer: fir.policeOfficer,
+          policeOfficer: fir.assignedOfficer,
           timestamp: new Date(Number(fir.timestamp) * 1000).toLocaleString(),
         };
         

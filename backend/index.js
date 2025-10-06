@@ -9,7 +9,29 @@ const cors = require('cors'); // Import cors
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors()); // Use cors middleware for all routes
+// Configure CORS for both development and production
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow no-origin (mobile apps, curl) and localhost/dev, and specific prod origins
+        const allowed = [
+            undefined,
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'https://legaltrackhost-12ep.vercel.app'
+        ];
+        if (!origin || allowed.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(null, true); // fallback: allow all to avoid dev CORS issues
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Health check
+app.get('/health', (_, res) => res.json({ ok: true }));
 
 // Setup Multer for file storage
 const storage = multer.diskStorage({

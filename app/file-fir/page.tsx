@@ -18,11 +18,28 @@ import ChatbotButton from "@/components/chatbot-button"
 import jsPDF from "jspdf"
 import axios from "axios"
 import { ethers } from "ethers"
-import { getContract } from "@/lib/contractConfig"
+import { 
+  getContract, 
+  getU2UProvider, 
+  switchToU2UTestnet, 
+  isOnU2UTestnet,
+  U2U_TESTNET_CONFIG 
+} from "@/lib/contractConfig"
+
+// Types
+type UploadedFile = {
+    cid: string
+    id: string
+    size: string
+    creationDate: string
+    fileName: string
+    blockchainRegistered: boolean
+}
 
 export default function FileFIRPage() {
   const [activeTab, setActiveTab] = useState("personal")
   const { toast } = useToast()
+  const UPLOAD_API = '/api/upload'
   
   // Blockchain integration states
   const [account, setAccount] = useState<string | null>(null)
@@ -44,9 +61,64 @@ export default function FileFIRPage() {
   const [witnesses, setWitnesses] = useState("")
 
   // File upload status state
-  const [uploadedFile, setUploadedFile] = useState(null)
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
   const [isUploaded, setIsUploaded] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Check for existing wallet connection on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            setAccount(accounts[0]);
+            
+            // Check if we're on the correct network
+            const onCorrectNetwork = await isOnU2UTestnet();
+            if (!onCorrectNetwork) {
+              toast({
+                title: "Wrong Network",
+                description: "Please switch to U2U Testnet for blockchain features.",
+                variant: "destructive",
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error checking wallet connection:', error);
+        }
+      }
+    };
+
+    checkConnection();
+  }, [toast]);
+
+  // Listen for account changes
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length === 0) {
+          setAccount(null);
+          toast({
+            title: "Wallet Disconnected",
+            description: "Your wallet has been disconnected.",
+            variant: "default",
+          });
+        } else {
+          setAccount(accounts[0]);
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      return () => {
+        if (window.ethereum) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
+    }
+  }, [toast]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
@@ -91,34 +163,61 @@ export default function FileFIRPage() {
     return doc.output("blob")
   }
 
-  // Connect to MetaMask wallet
+  // Connect to MetaMask wallet and switch to U2U testnet
   const connectWallet = async () => {
     if (account) return; // Already connected
     
     setIsConnecting(true);
     try {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        setAccount(accounts[0]);
-        
-        toast({
-          title: "Wallet Connected",
-          description: `Connected to wallet: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
-          variant: "default",
-        });
-      } else {
+      if (!window.ethereum) {
         toast({
           title: "MetaMask Not Found",
           description: "Please install MetaMask browser extension to use blockchain features.",
           variant: "destructive",
         });
+        return;
       }
-    } catch (error) {
+
+      // Switch to U2U testnet first
+      await switchToU2UTestnet();
+      
+      // Request account access
+      const accounts = await window.ethereum.request({ 
+        method: "eth_requestAccounts" 
+      });
+      
+      setAccount(accounts[0]);
+      
+      toast({
+        title: "Wallet Connected to U2U Testnet",
+        description: `Connected: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
+        variant: "default",
+      });
+
+      // Listen for network changes
+      window.ethereum.on('chainChanged', async (chainId: string) => {
+        if (chainId !== U2U_TESTNET_CONFIG.chainId) {
+          toast({
+            title: "Wrong Network",
+            description: "Please switch back to U2U Testnet to continue using blockchain features.",
+            variant: "destructive",
+          });
+        }
+      });
+
+    } catch (error: any) {
       console.error("Error connecting to wallet:", error);
+      let errorMessage = "Failed to connect to your wallet. Please try again.";
+      
+      if (error.code === 4001) {
+        errorMessage = "Connection rejected by user.";
+      } else if (error.code === -32002) {
+        errorMessage = "Connection request pending. Please check MetaMask.";
+      }
+      
       toast({
         title: "Connection Failed",
-        description: "Failed to connect to your wallet. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -126,7 +225,7 @@ export default function FileFIRPage() {
     }
   };
   
-  // Register FIR on blockchain
+  // Register FIR on U2U blockchain
   const registerFIROnBlockchain = async (cid: string) => {
     if (!window.ethereum || !account) {
       toast({
@@ -136,38 +235,63 @@ export default function FileFIRPage() {
       });
       return false;
     }
-    
-    setIsRegistering(true);
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = getContract(signer);
-      
+
+    // Check if we're on the correct network
+    const onCorrectNetwork = await isOnU2UTestnet();
+    if (!onCorrectNetwork) {
       try {
-        const tx = await contract.registerFIR(cid);
-        await tx.wait();
-        
-        toast({
-          title: "FIR Registered on Blockchain",
-          description: "Your FIR has been permanently registered on the blockchain.",
-          variant: "default",
-        });
-        
-        return true;
+        await switchToU2UTestnet();
       } catch (error) {
-        console.error("Transaction rejected by user:", error);
         toast({
-          title: "Transaction Rejected",
-          description: "You rejected the transaction in MetaMask. The FIR was not registered on the blockchain.",
+          title: "Network Switch Required",
+          description: "Please switch to U2U Testnet to register FIR on blockchain.",
           variant: "destructive",
         });
         return false;
       }
-    } catch (error) {
+    }
+    
+    setIsRegistering(true);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+
+      const contractAddress = U2U_TESTNET_CONFIG.contractAddress;
+      if (!ethers.isAddress(contractAddress)) {
+        throw new Error("Invalid contract address");
+      }
+
+      const contract = new ethers.Contract(contractAddress, U2U_TESTNET_CONFIG.abi, signer);
+
+      const tx = await contract.registerFIR(cid, { gasLimit: 500000 });
+      await tx.wait();
+      
+      toast({
+        title: "FIR Registered on U2U Blockchain",
+        description: `Your FIR has been permanently registered on U2U testnet. TX: ${tx.hash}`,
+        variant: "default",
+      });
+      
+      return true;
+    } catch (error: any) {
       console.error("Error registering FIR on blockchain:", error);
+      
+      let errorMessage = "Failed to register FIR on blockchain. Please try again.";
+      
+      if (error.code === 4001) {
+        errorMessage = "Transaction rejected by user.";
+      } else if (error.code === -32603) {
+        errorMessage = "Internal RPC error. Please check your network connection.";
+      } else if (error.message?.includes("insufficient funds")) {
+        errorMessage = "Insufficient U2U tokens for gas fees.";
+      } else if (error.message?.includes("ETH transfers not accepted")) {
+        errorMessage = "Contract doesn't accept ETH transfers. This is a configuration issue.";
+      }
+      
       toast({
         title: "Registration Failed",
-        description: "Failed to register FIR on blockchain. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
@@ -176,14 +300,18 @@ export default function FileFIRPage() {
     }
   };
 
-  const handleUpload = async (e: React.FormEvent<HTMLButtonElement>) => {
+  const handleUpload = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     try {
+      setIsUploading(true)
       const pdfBlob = generatePdf()
       const formData = new FormData()
       formData.append("file", pdfBlob, "fir.pdf")
 
-      const ipfsRes = await axios.post("http://localhost:3001/upload", formData)
+      const ipfsRes = await axios.post(UPLOAD_API, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: false,
+      })
       const contentHash = ipfsRes.data.ipfsHash
       
       // Store the uploaded file information
@@ -206,13 +334,24 @@ export default function FileFIRPage() {
       
       // Switch to status tab to show the uploaded file details
       setActiveTab("status")
-    } catch (err) {
+
+      // If wallet connected, auto-register on blockchain
+      if (account) {
+        const success = await registerFIROnBlockchain(contentHash)
+        if (success) {
+      setUploadedFile((prev) => prev ? { ...prev, blockchainRegistered: true } : prev)
+        }
+      }
+    } catch (err: any) {
       console.error("Upload error:", err)
       toast({
         title: "Upload Failed",
-        description: "Failed to upload FIR to IPFS. Please try again.",
+        description: err?.response?.data || err?.message || "Failed to upload FIR to IPFS. Please try again.",
         variant: "destructive",
       })
+    }
+    finally {
+      setIsUploading(false)
     }
   }
 
@@ -235,14 +374,19 @@ export default function FileFIRPage() {
       <Navbar />
       <main className="flex-1 py-12">
         <div className="container">
-          <div className="flex justify-end mb-4 max-w-3xl mx-auto">
+          <div className="flex flex-col items-end mb-4 max-w-3xl mx-auto">
             <Button
               onClick={connectWallet}
               disabled={isConnecting || !!account}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white mb-2"
             >
               {isConnecting ? "Connecting..." : account ? `Connected: ${account.substring(0, 6)}...${account.substring(account.length - 4)}` : "Connect Wallet"}
             </Button>
+            {account && (
+              <div className="text-sm text-muted-foreground">
+                Network: U2U Testnet (Chain ID: 2484)
+              </div>
+            )}
           </div>
           <motion.div
             className="max-w-3xl mx-auto"
@@ -629,8 +773,9 @@ export default function FileFIRPage() {
                         // All validations passed, proceed with upload
                         handleUpload(e);
                       }}
+                      disabled={isUploading}
                     >
-                      Submit FIR
+                      {isUploading ? "Submitting..." : "Submit FIR"}
                     </Button>
 
                   </CardFooter>
@@ -660,7 +805,9 @@ export default function FileFIRPage() {
                               </svg>
                             </div>
                             <span className="text-green-800 dark:text-green-200 font-medium text-lg">
-                              FIR submitted successfully! Your report has been securely stored on the blockchain.
+                              {uploadedFile.blockchainRegistered
+                                ? "FIR submitted and registered on the blockchain."
+                                : "FIR submitted successfully! Stored on IPFS. Register on blockchain to finalize."}
                             </span>
                           </div>
                         </motion.div>
@@ -724,10 +871,17 @@ export default function FileFIRPage() {
                           <h3 className="font-bold text-gray-800 dark:text-gray-200 text-lg mb-4">What happens next?</h3>
                           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                             <ul className="space-y-3 text-gray-700 dark:text-gray-300">
-                              <li className="flex items-start gap-3">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                <span>Your FIR is now permanently stored on the blockchain</span>
-                              </li>
+                              {uploadedFile.blockchainRegistered ? (
+                                <li className="flex items-start gap-3">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                  <span>Your FIR is now permanently stored on the blockchain</span>
+                                </li>
+                              ) : (
+                                <li className="flex items-start gap-3">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                  <span>Your FIR is uploaded to IPFS. Register on-chain to make it permanent.</span>
+                                </li>
+                              )}
                               <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                                 <span>The file hash ensures document integrity</span>

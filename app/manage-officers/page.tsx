@@ -95,7 +95,7 @@ export default function ManageOfficersPage() {
         console.error("Error with owner() function:", ownerError);
         // Fallback: For testing purposes, you can set a specific address as owner
         // Remove this in production and ensure the contract has an owner() function
-        const hardcodedOwner = "0x3033C34AA1b345EAc587E930c777A05683636B1f"; // Same as contract address for testing
+        const hardcodedOwner = "0x0148726D02401cA87c9cb714f16BBB1ebEaEe63333C34AA1b345EAc587E930c777A05683636B1f"; // Same as contract address for testing
         const isHardcodedOwner = hardcodedOwner.toLowerCase() === address.toLowerCase();
         setIsOwner(isHardcodedOwner);
         

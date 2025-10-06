@@ -64,15 +64,15 @@ export default function UpdateFIRPage() {
     }
   };
   
-  // Check if the connected account is a police officer
+  // Check if the connected account is a police officer (via getAllPoliceOfficers)
   const checkPoliceOfficerStatus = async (address: string) => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = getContract(signer);
       
-      // This assumes your contract has a function to check if an address is a police officer
-      const isOfficer = await contract.isPoliceOfficer(address);
+      const officers: string[] = await contract.getAllPoliceOfficers();
+      const isOfficer = officers.some((o) => o.toLowerCase() === address.toLowerCase());
       setIsPoliceOfficer(isOfficer);
       
       if (!isOfficer) {
@@ -135,7 +135,7 @@ export default function UpdateFIRPage() {
           cid: fir.cid,
           status: fir.status,
           complainant: fir.complainant,
-          policeOfficer: fir.policeOfficer,
+          policeOfficer: fir.assignedOfficer,
           timestamp: new Date(Number(fir.timestamp) * 1000).toLocaleString(),
         };
         
@@ -198,7 +198,7 @@ export default function UpdateFIRPage() {
       const contract = getContract(signer);
       
       try {
-        const tx = await contract.updateFIRStatus(firDetails.id, status);
+        const tx = await contract.updateFIRStatus(firDetails.id, status, account);
         await tx.wait();
         
         // Update the local FIR details
