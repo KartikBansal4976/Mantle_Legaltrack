@@ -1,179 +1,171 @@
-⚖️ LegalTrack4
+# ⚖️ LegalTrack4  
+### 🚀 AI + Blockchain Powered FIR Management Platform  
 
-WATCH LIVE (Frontend):
+**🌐 Live Demo:**  
 👉 https://legaltrackhost-12ep.vercel.app/
 
-LegalTrack4 is an AI + Blockchain powered legal tech platform designed to modernize and simplify the legal process — from FIR assistance to legal support services — all in one place.
+---
 
-It brings together Artificial Intelligence, IPFS, and Blockchain to make FIR filing secure, tamper-proof, and transparent. Built for users, police departments, and legal professionals, it ensures FIRs are immutable and traceable on the blockchain while leveraging AI for predictions and automation.
+## 📖 About LegalTrack4
 
-📌 Problem Statement
+LegalTrack4 is an **AI + Blockchain powered legal tech platform** designed to modernize and simplify the legal process — from **FIR assistance to legal support services** — all in one place.
 
-The legal process in many regions suffers from delays, lack of transparency, and risks of tampering with records. FIRs (First Information Reports), in particular, are prone to mismanagement or loss in traditional systems. Victims often face challenges like:
+It combines **Artificial Intelligence, IPFS, and Blockchain** to make FIR filing **secure, tamper-proof, and transparent**. Built for **citizens, police departments, and legal professionals**, it ensures FIRs are immutable, traceable, and supported by AI-driven automation.
 
-Complex manual filing procedures
+---
 
-Lack of legal knowledge (which sections apply)
+## 📌 Problem Statement
 
-Data integrity issues (tampering or lost files)
+Traditional FIR and legal systems often suffer from:
 
-Difficulty in tracking FIR status
+❌ Delays and slow processing  
+❌ Lack of transparency  
+❌ Risk of tampering or data loss  
+❌ Complex manual procedures  
+❌ Poor FIR tracking mechanisms  
 
-💡 Our Solution
+Victims commonly face:
 
-LegalTrack4 solves these challenges by combining AI, decentralized storage, and blockchain:
+- 📝 Complicated FIR filing  
+- ⚖️ Lack of legal knowledge  
+- 🔐 Data integrity issues  
+- 📍 No real-time FIR status tracking  
 
-🧠 AI-driven Legal Prediction – Suggests relevant sections for FIRs using ANN models
+---
 
-🗣️ Voice-to-Text FIR Filing – Helps victims file FIRs faster
+## 💡 Our Solution
 
-🔗 Blockchain Integration – Stores FIR CIDs on Mantle Sepolia blockchain (immutable, tamper-proof)
+LegalTrack4 solves these challenges using **AI + Decentralization + Blockchain**:
 
-📂 IPFS Storage – Decentralized FIR storage with unique content hashes
+- 🧠 **AI Legal Prediction** – Suggests relevant IPC sections using ANN models  
+- 🗣️ **Voice-to-Text FIR Filing** – Faster, easier FIR creation  
+- 🔗 **Blockchain Integration** – FIR CIDs stored on Mantle Sepolia (immutable)  
+- 📂 **IPFS Storage** – Decentralized and verifiable FIR records  
+- 📞 **Emergency Support** – One-click police & legal help  
 
-📞 Emergency Support – Contact police/lawyers instantly
+---
 
-🚀 Tech Stack
-Frontend
+## 🧩 System Architecture
 
-Framework: React 19 with Next.js 15
+User → Web App → AI Engine → PDF Generator → IPFS → Mantle Blockchain
+↓
+FIR Tracking UI
 
-Styling: Tailwind CSS, ShadCN UI, Framer Motion
+---
 
-Auth: Clerk Authentication
+## 🚀 Tech Stack
 
-Forms & Validation: React Hook Form, Zod
+### 🎨 Frontend
+- React 19 + Next.js 15  
+- Tailwind CSS, ShadCN UI, Framer Motion  
+- Clerk Authentication  
+- React Hook Form, Zod  
 
-Backend
+### ⚙️ Backend
+- Node.js  
+- ANN-based IPC Prediction  
+- OpenRouter, Gemini API  
+- jsPDF  
+- IPFS + Pinata  
 
-Runtime: Node.js
+### 🔗 Blockchain
+- Mantle Sepolia Testnet  
+- Chain ID: 5003  
+- Smart Contract: `FIRSystem`  
+- Contract: `0x3033C34AA1b345EAc587E930c777A05683636B1f`  
+- Explorer: https://sepolia.mantlescan.xyz/address/0x3033C34AA1b345EAc587E930c777A05683636B1f  
+- Wallet: MetaMask  
 
-AI Models: ANN-based prediction for legal sections
+---
 
-AI Services: OpenRouter, Gemini API
+## 📜 Smart Contract Details
 
-PDF Generation: jsPDF
+**Network:** Mantle Sepolia Testnet  
+**Contract:** `FIRSystem`
 
-Storage: IPFS (via local node and Pinata API)
+### 🔧 Functions
+- `registerFIR(cid)` → Store FIR IPFS CID  
+- `getFIR(firId)` → Retrieve FIR details  
+- `owner()` → Contract owner  
 
-Blockchain
+✔️ Ensures **immutability, transparency, and trustless verification**.
 
-Network: Mantle Sepolia Testnet
+---
 
-Chain ID: 5003
+## 📁 Project Structure
 
-Smart Contract: FIRSystem
-
-Contract Address: 0x3033C34AA1b345EAc587E930c777A05683636B1f
-
-Explorer: https://sepolia.mantlescan.xyz/address/0x3033C34AA1b345EAc587E930c777A05683636B1f
-
-Wallet Integration: MetaMask
-
-📜 Smart Contract Details
-
-The FIRSystem contract is deployed on Mantle Sepolia Testnet at:
-
-👉 Contract Address: 0x3033C34AA1b345EAc587E930c777A05683636B1f
-👉 Explorer: https://sepolia.mantlescan.xyz/address/0x3033C34AA1b345EAc587E930c777A05683636B1f
-
-Functions:
-
-registerFIR(cid) → Stores FIR's IPFS CID on the Mantle blockchain
-
-getFIR(firId) → Fetch FIR details by ID
-
-owner() → Returns the contract owner address
-
-This ensures immutability, transparency, and controlled updates of FIRs on the Mantle Sepolia blockchain.
-
-📁 Project Structure
+```bash
 legaltrack4/
-├── backend/                # Node.js backend logic
-│   └── index.js           # Backend server entry point
-├── app/                   # Next.js pages and routes
-│   ├── file-fir/         # FIR filing page
-│   ├── view-firs/        # View FIRs page
-│   ├── predict/          # IPC prediction
+├── backend/
+│   └── index.js
+├── app/
+│   ├── file-fir/
+│   ├── view-firs/
+│   ├── predict/
 │   └── ...
-├── components/            # UI Components
-├── lib/                  # Utilities and configs
-│   └── contractConfig.ts # Mantle blockchain configuration
-├── public/               # Static files
-├── styles/               # Global styles
-└── .env.local           # Environment variables
+├── components/
+├── lib/
+│   └── contractConfig.ts
+├── public/
+├── styles/
+└── .env.local
+⚙️ Installation & Setup
 
-⚙️ Setup Instructions
-1. Clone the Repository
 git clone https://github.com/KartikBansal4976/Mantle_Legaltrack.git
 cd Mantle_Legaltrack
-
-2. Install Dependencies
 npm install
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
 
-3. Environment Variables
+OPENROUTER_API_KEY=
+GEMINI_API_KEY=
+JWT=
 
-Create a .env.local file:
+PINATA_API_KEY=
+PINATA_SECRET_API_KEY=
 
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-
-OPENROUTER_API_KEY=your_openrouter_api_key
-GEMINI_API_KEY=your_gemini_api_key
-JWT=your_jwt_token
-
-PINATA_API_KEY=your_pinata_api_key
-PINATA_SECRET_API_KEY=your_pinata_secret_key
-
-API_KEY=your_api_key
-API_SECRET=your_api_secret
-
-4. Run Frontend
+API_KEY=
+API_SECRET=
 npm run dev
-
-5. Run Backend
 cd backend
 node index.js
+🔗 FIR Filing Workflow
 
-🔗 FIR Filing Process
+👤 User details & incident input
 
-User Information Collection
+📄 FIR PDF + hash generation
 
-Review & PDF Generation (jsPDF + integrity hash)
+📦 Upload to IPFS
 
-IPFS Storage (returns CID)
+🔗 CID stored on Mantle blockchain
 
-Blockchain Registration (CID stored on Mantle)
+📊 FIR tracking & receipt download
 
-Status Tracking & Receipt Download
+✨ Features
 
-🧠 Features Overview
+✅ AI FIR assistant
 
-✅ AI Legal FIR Assistance
+🗣️ Voice FIR filing
 
-🗣️ Voice-to-Text FIR Filing
+📋 Legal chatbot
 
-📋 Legal AI Chatbot
+📞 Emergency help
 
-📞 Emergency Support
+🧾 FIR PDF receipt
 
-🧾 FIR PDF Generator
+🔗 Blockchain verified storage
 
-🌐 Animated, Responsive UI
+🔐 MetaMask integration
 
-🔗 Mantle + IPFS Integration
-
-🔐 MetaMask Wallet Support
-
-📊 IPC Section Prediction
+📊 IPC prediction system
 
 🎬 Demo & Resources
 
 🎥 Demo Video
-https://1drv.ms/v/c/e44270becb740185/EaMsDn5zQ5xCuJVl09vXctEB2A4uGFZPMq6jWKbeDKjuyA?e=UPTs0c
+https://1drv.ms/v/c/e44270becb740185/EaMsDn5zQ5xCuJVl09vXctEB2A4uGFZPMq6jWKbeDKjuyA
 
 🖼 Screenshots
-https://1drv.ms/f/c/e44270becb740185/EqJyOk90KhRGg6zZg9Epc8IB_VGRO6VcY-z-c96NNxzBpQ?e=G3QxOO
+https://1drv.ms/f/c/e44270becb740185/EqJyOk90KhRGg6zZg9Epc8IB_VGRO6VcY-z-c96NNxzBpQ
 
 📊 Presentation
 https://gamma.app/docs/LEGALTRACK-Revolutionizing-FIR-Filing-evufj3uu6z7ge3l
@@ -183,5 +175,5 @@ https://gamma.app/docs/LEGALTRACK-Revolutionizing-FIR-Filing-evufj3uu6z7ge3l
 Frontend: https://legaltrackhost-12ep.vercel.app/
 
 Network: Mantle Sepolia Testnet
-
 Contract: 0x3033C34AA1b345EAc587E930c777A05683636B1f
+
