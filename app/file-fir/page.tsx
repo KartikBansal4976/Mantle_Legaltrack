@@ -20,10 +20,10 @@ import axios from "axios"
 import { ethers } from "ethers"
 import { 
   getContract, 
-  getU2UProvider, 
-  switchToU2UTestnet, 
-  isOnU2UTestnet,
-  U2U_TESTNET_CONFIG 
+  getMantleSepoliaProvider, 
+  switchToMantleSepoliaTestnet, 
+  isOnMantleSepoliaTestnet,
+  MANTLE_SEPOLIA_CONFIG 
 } from "@/lib/contractConfig"
 
 // Types
@@ -76,11 +76,11 @@ export default function FileFIRPage() {
             setAccount(accounts[0]);
             
             // Check if we're on the correct network
-            const onCorrectNetwork = await isOnU2UTestnet();
+            const onCorrectNetwork = await isOnMantleSepoliaTestnet();
             if (!onCorrectNetwork) {
               toast({
                 title: "Wrong Network",
-                description: "Please switch to U2U Testnet for blockchain features.",
+                description: "Please switch to Mantle Sepolia Testnet for blockchain features.",
                 variant: "destructive",
               });
             }
@@ -163,7 +163,7 @@ export default function FileFIRPage() {
     return doc.output("blob")
   }
 
-  // Connect to MetaMask wallet and switch to U2U testnet
+  // Connect to MetaMask wallet and switch to Mantle Sepolia testnet
   const connectWallet = async () => {
     if (account) return; // Already connected
     
@@ -178,8 +178,8 @@ export default function FileFIRPage() {
         return;
       }
 
-      // Switch to U2U testnet first
-      await switchToU2UTestnet();
+      // Switch to Mantle Sepolia testnet first
+      await switchToMantleSepoliaTestnet();
       
       // Request account access
       const accounts = await window.ethereum.request({ 
@@ -189,17 +189,17 @@ export default function FileFIRPage() {
       setAccount(accounts[0]);
       
       toast({
-        title: "Wallet Connected to U2U Testnet",
+        title: "Wallet Connected to Mantle Sepolia Testnet",
         description: `Connected: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
         variant: "default",
       });
 
       // Listen for network changes
       window.ethereum.on('chainChanged', async (chainId: string) => {
-        if (chainId !== U2U_TESTNET_CONFIG.chainId) {
+        if (chainId !== MANTLE_SEPOLIA_CONFIG.chainId) {
           toast({
             title: "Wrong Network",
-            description: "Please switch back to U2U Testnet to continue using blockchain features.",
+            description: "Please switch back to Mantle Sepolia Testnet to continue using blockchain features.",
             variant: "destructive",
           });
         }
@@ -237,14 +237,14 @@ export default function FileFIRPage() {
     }
 
     // Check if we're on the correct network
-    const onCorrectNetwork = await isOnU2UTestnet();
+    const onCorrectNetwork = await isOnMantleSepoliaTestnet();
     if (!onCorrectNetwork) {
       try {
-        await switchToU2UTestnet();
+        await switchToMantleSepoliaTestnet();
       } catch (error) {
         toast({
           title: "Network Switch Required",
-          description: "Please switch to U2U Testnet to register FIR on blockchain.",
+          description: "Please switch to Mantle Sepolia Testnet to register FIR on blockchain.",
           variant: "destructive",
         });
         return false;
@@ -257,19 +257,19 @@ export default function FileFIRPage() {
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
 
-      const contractAddress = U2U_TESTNET_CONFIG.contractAddress;
+      const contractAddress = MANTLE_SEPOLIA_CONFIG.contractAddress;
       if (!ethers.isAddress(contractAddress)) {
         throw new Error("Invalid contract address");
       }
 
-      const contract = new ethers.Contract(contractAddress, U2U_TESTNET_CONFIG.abi, signer);
+      const contract = new ethers.Contract(contractAddress, MANTLE_SEPOLIA_CONFIG.abi, signer);
 
-      const tx = await contract.registerFIR(cid, { gasLimit: 500000 });
+      const tx = await contract.registerFIR(cid);
       await tx.wait();
       
       toast({
-        title: "FIR Registered on U2U Blockchain",
-        description: `Your FIR has been permanently registered on U2U testnet. TX: ${tx.hash}`,
+        title: "FIR Registered on Mantle Sepolia Blockchain",
+        description: `Your FIR has been permanently registered on Mantle Sepolia testnet. TX: ${tx.hash}`,
         variant: "default",
       });
       
@@ -384,7 +384,7 @@ export default function FileFIRPage() {
             </Button>
             {account && (
               <div className="text-sm text-muted-foreground">
-                Network: U2U Testnet (Chain ID: 2484)
+                Network: Mantle Sepolia Testnet (Chain ID: 5003)
               </div>
             )}
           </div>

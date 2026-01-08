@@ -12,9 +12,9 @@ import Footer from "@/components/footer"
 import { ethers } from "ethers"
 import { 
   getContract, 
-  getU2UProvider, 
-  switchToU2UTestnet, 
-  isOnU2UTestnet 
+  getMantleSepoliaProvider, 
+  switchToMantleSepoliaTestnet, 
+  isOnMantleSepoliaTestnet 
 } from "@/lib/contractConfig"
 
 export default function ViewFIRsPage() {
@@ -27,7 +27,7 @@ export default function ViewFIRsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [firDetails, setFirDetails] = useState<any>(null)
   
-  // Connect to MetaMask wallet and switch to U2U testnet
+  // Connect to MetaMask wallet and switch to Mantle Sepolia testnet
   const connectWallet = async () => {
     if (account) return; // Already connected
     
@@ -42,12 +42,12 @@ export default function ViewFIRsPage() {
         return;
       }
 
-      await switchToU2UTestnet();
+      await switchToMantleSepoliaTestnet();
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
       
       toast({
-        title: "Wallet Connected to U2U Testnet",
+        title: "Wallet Connected to Mantle Sepolia Testnet",
         description: `Connected: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
         variant: "default",
       });

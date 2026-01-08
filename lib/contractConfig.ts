@@ -1,36 +1,22 @@
 import { ethers } from "ethers";
 
-// U2U Testnet Configuration
-export const U2U_TESTNET_CONFIG = {
-  chainId: '0x9b4', // 2484 in hex
-  chainName: 'Unicorn Ultra Nebulas Testnet',
+// Mantle Sepolia Configuration
+export const MANTLE_SEPOLIA_CONFIG = {
+  chainId: '0x138B', // 5003 in hex
+  chainName: 'Mantle Sepolia Testnet',
   nativeCurrency: {
-    name: 'U2U',
-    symbol: 'U2U',
+    name: 'MNT',
+    symbol: 'MNT',
     decimals: 18
   },
-  rpcUrls: ['https://rpc-nebulas-testnet.uniultra.xyz'],
-  blockExplorerUrls: ['https://testnet.u2uscan.xyz'],
-  contractAddress: "0x0148726D02401cA87c9cb714f16BBB1ebEaEe633", // Your deployed contract address
+  rpcUrls: ['https://rpc.sepolia.mantle.xyz'],
+  blockExplorerUrls: ['https://sepolia.mantlescan.xyz'],
+  contractAddress: "0x3033C34AA1b345EAc587E930c777A05683636B1f", // Your deployed contract address
   abi: [
-    // Contract ABI
     {
       "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
-    },
-    {
-      "inputs": [],
-      "name": "owner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
     },
     {
       "anonymous": false,
@@ -56,19 +42,6 @@ export const U2U_TESTNET_CONFIG = {
       ],
       "name": "FIRRegistered",
       "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "cid",
-          "type": "string"
-        }
-      ],
-      "name": "registerFIR",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
     },
     {
       "inputs": [
@@ -120,12 +93,38 @@ export const U2U_TESTNET_CONFIG = {
       ],
       "stateMutability": "view",
       "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "cid",
+          "type": "string"
+        }
+      ],
+      "name": "registerFIR",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
     }
   ]
 };
 
-// Add U2U Testnet to MetaMask if not present
-export async function addU2UTestnet() {
+// Add Mantle Sepolia Testnet to MetaMask if not present
+export async function addMantleSepoliaTestnet() {
   try {
     if (!window.ethereum) {
       throw new Error("MetaMask is not installed");
@@ -133,18 +132,18 @@ export async function addU2UTestnet() {
 
     await window.ethereum.request({
       method: 'wallet_addEthereumChain',
-      params: [U2U_TESTNET_CONFIG]
+      params: [MANTLE_SEPOLIA_CONFIG]
     });
     
     return true;
   } catch (error) {
-    console.error('Failed to add U2U testnet:', error);
+    console.error('Failed to add Mantle Sepolia testnet:', error);
     throw error;
   }
 }
 
-// Switch to U2U Testnet
-export async function switchToU2UTestnet() {
+// Switch to Mantle Sepolia Testnet
+export async function switchToMantleSepoliaTestnet() {
   try {
     if (!window.ethereum) {
       throw new Error("MetaMask is not installed");
@@ -152,33 +151,33 @@ export async function switchToU2UTestnet() {
 
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: U2U_TESTNET_CONFIG.chainId }]
+      params: [{ chainId: MANTLE_SEPOLIA_CONFIG.chainId }]
     });
     
     return true;
   } catch (error: any) {
     // This error code indicates that the chain has not been added to MetaMask
     if (error.code === 4902) {
-      return await addU2UTestnet();
+      return await addMantleSepoliaTestnet();
     }
-    console.error('Failed to switch to U2U testnet:', error);
+    console.error('Failed to switch to Mantle Sepolia testnet:', error);
     throw error;
   }
 }
 
 // Get contract instance with proper typing for ethers v6
 export function getContract(signer: ethers.Signer) {
-  return new ethers.Contract(U2U_TESTNET_CONFIG.contractAddress, U2U_TESTNET_CONFIG.abi, signer);
+  return new ethers.Contract(MANTLE_SEPOLIA_CONFIG.contractAddress, MANTLE_SEPOLIA_CONFIG.abi, signer);
 }
 
-// Get provider and signer for U2U testnet
-export async function getU2UProvider() {
+// Get provider and signer for Mantle Sepolia testnet
+export async function getMantleSepoliaProvider() {
   if (!window.ethereum) {
     throw new Error("MetaMask is not installed");
   }
 
   // Ensure we're on the correct network
-  await switchToU2UTestnet();
+  await switchToMantleSepoliaTestnet();
   
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
@@ -186,13 +185,13 @@ export async function getU2UProvider() {
   return { provider, signer };
 }
 
-// Check if we're on U2U testnet
-export async function isOnU2UTestnet() {
+// Check if we're on Mantle Sepolia testnet
+export async function isOnMantleSepoliaTestnet() {
   try {
     if (!window.ethereum) return false;
     
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    return chainId === U2U_TESTNET_CONFIG.chainId;
+    return chainId === MANTLE_SEPOLIA_CONFIG.chainId;
   } catch (error) {
     console.error('Error checking network:', error);
     return false;
